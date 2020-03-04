@@ -14,6 +14,11 @@ namespace DataEncoding
         #region Properties
 
         /// <summary>
+        /// An Encryption Algorithm.  Doesn't matter what kind!
+        /// </summary>
+        private IEncryptionAlgorithm EncryptionAlgorithm;
+
+        /// <summary>
         /// The Raw Data read from this File
         /// </summary>
         public byte[] RawBytes
@@ -157,6 +162,85 @@ namespace DataEncoding
         /// </summary>
         /// <param name="stream">Write this data directly to a given stream (like an HttpReqeustMessage or a Socket connection).</param>
         public void Save(ref Stream stream) => stream.Write(this.RawBytes, 0, this.RawBytes.Length);
+
+
+        /// <summary>
+        /// Encrypt the contents of this block using the provided encryption algorithm
+        /// </summary>
+        public void Encrypt()
+        {
+            for(long i = 0; i < RawBytes.Length; i+=EncryptionAlgorithm.BlockSize)
+            {
+                // Prepare a temporary space for this step in Encryption
+                byte[] temp = new byte[EncryptionAlgorithm.BlockSize];
+
+                // Move data into this temporary location
+                for(int j = 0; j < EncryptionAlgorithm.BlockSize; j++)
+                {
+                    if (i + j < RawBytes.Length)
+                        temp[j] = RawBytes[i + j];
+                    
+                    else  
+                        temp[j] = 0;
+                    // Have to be careful because it is possible to run over
+                    // the end of the RawBytes size.  If this is the case, pad the temp array with zeros.
+                }
+
+                /// Encrypt this block of data.
+                temp = EncryptionAlgorithm.EncryptBlock(temp);
+
+                // Now restore the encrypted bytes into the RawBytes list.
+                for (int j = 0; j < EncryptionAlgorithm.BlockSize; j++)
+                {
+                    if (i + j < RawBytes.Length)
+                        RawBytes[i + j] = temp[j];
+                    else
+                        break;
+                    // If there were overflow bits, we will just ignore them.
+                }
+            }
+
+            // This file Data is now encrypted!
+        }
+
+        /// <summary>
+        /// Encrypt the contents of this block using the provided encryption algorithm
+        /// </summary>
+        public void Decrypt()
+        {
+            for (long i = 0; i < RawBytes.Length; i += EncryptionAlgorithm.BlockSize)
+            {
+                // Prepare a temporary space for this step in Encryption
+                byte[] temp = new byte[EncryptionAlgorithm.BlockSize];
+
+                // Move data into this temporary location
+                for (int j = 0; j < EncryptionAlgorithm.BlockSize; j++)
+                {
+                    if (i + j < RawBytes.Length)
+                        temp[j] = RawBytes[i + j];
+
+                    else
+                        temp[j] = 0;
+                    // Have to be careful because it is possible to run over
+                    // the end of the RawBytes size.  If this is the case, pad the temp array with zeros.
+                }
+
+                /// Encrypt this block of data.
+                temp = EncryptionAlgorithm.DecryptBlock(temp);
+
+                // Now restore the encrypted bytes into the RawBytes list.
+                for (int j = 0; j < EncryptionAlgorithm.BlockSize; j++)
+                {
+                    if (i + j < RawBytes.Length)
+                        RawBytes[i + j] = temp[j];
+                    else
+                        break;
+                    // If there were overflow bits, we will just ignore them.
+                }
+            }
+
+            // This file Data is now encrypted!
+        }
 
         #endregion // Methods
 
