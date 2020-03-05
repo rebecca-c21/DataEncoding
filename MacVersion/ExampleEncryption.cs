@@ -22,20 +22,59 @@ namespace DataEncoding
         /// <summary>
         /// a /really large/ prime number (not the largest 64-bit prime, but close)
         /// </summary>
-        public static ulong prime => (ulong)Math.Pow(2, 61) - 1;
+        public static ulong prime
+        {
+            get
+            {
+                if(_prime == 0) 
+                    _prime = (ulong)Math.Pow(2, 61) - 1;
+                return _prime;
+            }
+        }
+        private static ulong _prime;
+
 
         /// <summary>
         /// Another large prime, though this one is less important that it is prime.  
         /// It must be shared publicly in order to encrypt.
         /// </summary>
-        public static ulong generator => (ulong)Math.Pow(2, 31) - 1;
+        public static ulong generator
+        {
+            get
+            {
+                if (_generator == 0) 
+                    _generator = (ulong)Math.Pow(2, 31) - 1;
+                return _generator;
+            }
+        }
+        private static ulong _generator;
 
         /// <summary>
         /// seed for this algorithm.  Ideally, this is negotiated between two partners
         /// using a Diffie-Helman Key Exchange.
         /// For Added security, a different key for each message sent.
         /// </summary>
-        private ulong seed;
+        private ulong privateKey;
+
+        /// <summary>
+        /// Public Key to be shared with another person!
+        /// </summary>
+        public ulong publicKey
+        {
+            get
+            {
+                if(_publicKey == 0)
+                    _publicKey = BigPow(generator, privateKey);
+
+                return _publicKey;
+            }
+        }
+        private ulong _publicKey;
+
+        /// <summary>
+        /// the Key that is only acquireable by knowing your Private Key!
+        /// </summary>
+        private ulong combinedKey;
 
         /// <summary>
         /// current internal state
@@ -49,7 +88,7 @@ namespace DataEncoding
         /// The security comes in the fact that it is practically (for a mathematically provable definition of "practical")
         /// impossible to take this key and regenerate the state of this object or the seed used to get here.
         /// </summary>
-        private ushort key
+        private ushort keyBytes
         {
             get
             {
@@ -67,10 +106,34 @@ namespace DataEncoding
             state = generator;
         }
        
-        public ExampleEncryption(ulong seed)
+        /// <summary>
+        /// using a private and public key.
+        /// </summary>
+        /// <param name="priv">Your private key!  Not shared with /anyone!/</param>
+        /// <param name="pub">The Public Key of the person you are communicating with.  The person you are communicating with will need to use your public key also.</param>
+        public ExampleEncryption(ulong priv, ulong pub)
         {
-            this.seed = seed;
+            this.privateKey = priv;
+            this.combinedKey = BigPow(pub, priv);
             this.state = generator;
+        }
+
+        /// <summary>
+        /// Calculates (b^exp) % prime
+        /// </summary>
+        /// <param name="b"></param>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        public static ulong BigPow(ulong b, ulong exp)
+        {
+            ulong temp = b;
+
+            for(ulong i = 0; i < exp; i++)
+            {
+                temp = (temp * b) % prime;
+            }
+
+            return temp;
         }
 
 
@@ -87,7 +150,7 @@ namespace DataEncoding
 
             UpdateState();
 
-            byte[] keyBytes = { (byte)(key / 256), (byte)(key % 256) };
+            byte[] keyBytes = { (byte)(this.keyBytes / 256), (byte)(this.keyBytes % 256) };
 
             /// ^ is not exponent!  it is the XOR operator!  WTF is that!?!? 
             byte[] result = { (byte)(block[0] ^ keyBytes[0]), (byte)(block[1] ^ keyBytes[1]) };
@@ -116,26 +179,9 @@ namespace DataEncoding
         public byte[] DecryptBlock(byte[] block) => EncryptBlock(block);
 
         /// <summary>
-        /// Compute new state as (state ^ seed) % prime
+        /// Compute new state as (state ^ combinedKey) % prime
         /// This is really the pseudo random bit generator which is necessary to make a secure key.
         /// </summary>
-        public void UpdateState()
-        {
-            // hold onto the current state as it is used in the calculation
-            // We can't just say 'state = Math.Pow(state, seed);', because 
-            // that number will likely be so big you blow up your computer.
-            ulong temp = state;
-
-            // These numbers are VERY large, so in order to make sure we 
-            // don't overflow a 64-bit integer, we need to do this exponent
-            // one multiplication at a time and % out the prime at each step.
-            for(ulong i = 0; i < this.seed; i++)
-            {
-                temp = (temp * state) % prime;
-            }
-
-            // now store the new state.
-            state = temp;
-        }
+        public void UpdateState() => state = BigPow(state, combinedKey);
     }
 }

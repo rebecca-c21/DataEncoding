@@ -14,7 +14,15 @@ namespace DataEncoding
             Console.WriteLine("Gimme some text!");
             string text = Console.ReadLine();
 
-            FileDataEncoder encoder = new FileDataEncoder(Encoding.ASCII.GetBytes(text)) { EncryptionAlgorithm = new ExampleEncryption((ulong)Math.Pow(2, 8) - 31) };
+
+
+            FileDataEncoder encoder = new FileDataEncoder(Encoding.ASCII.GetBytes(text)) 
+            { 
+                EncryptionAlgorithm = new ExampleEncryption(
+                        (ulong)Math.Pow(2, 8) - 31, 
+                        ExampleEncryption.BigPow(ExampleEncryption.generator, (ulong)Math.Pow(2, 7) - 33)  // simulated public key~
+                    ) 
+            };
 
             encoder.Encrypt();
             Console.WriteLine(encoder);
