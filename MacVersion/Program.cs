@@ -11,20 +11,18 @@ namespace DataEncoding
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Enter a file name (full path):");
-            string filePath = Console.ReadLine();
+            Console.WriteLine("Gimme some text!");
+            string text = Console.ReadLine();
 
-            FileDataEncoder encoder = new FileDataEncoder(filePath);
-            string b64s = encoder.Base64String;
+            FileDataEncoder encoder = new FileDataEncoder(Encoding.ASCII.GetBytes(text)) { EncryptionAlgorithm = new ExampleEncryption((ulong)Math.Pow(2, 8) - 31) };
 
-            Console.WriteLine("Enter a file name to save base64 text to:");
-            string outfilePath = Console.ReadLine();
+            encoder.Encrypt();
+            Console.WriteLine(encoder);
 
-            using (StreamWriter writer = new StreamWriter(new FileStream(outfilePath, FileMode.Create)))
-            {
-                writer.Write(b64s);
-                writer.Flush();
-            }
+            encoder.EncryptionAlgorithm.Reset();
+
+            encoder.Decrypt();
+            Console.WriteLine(encoder);
 
             Console.ReadLine();
         }

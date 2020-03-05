@@ -16,7 +16,7 @@ namespace DataEncoding
         /// <summary>
         /// An Encryption Algorithm.  Doesn't matter what kind!
         /// </summary>
-        private IEncryptionAlgorithm EncryptionAlgorithm;
+        public IEncryptionAlgorithm EncryptionAlgorithm;
 
         /// <summary>
         /// The Raw Data read from this File

@@ -40,11 +40,15 @@ namespace DataEncoding
             }
         }
 
+        public void Reset()
+        {
+            state = initialState;
+        }
        
         public ExampleEncryption(ulong seed)
         {
             this.seed = seed;
-            this.state = 
+            this.state = initialState;
         }
 
 
