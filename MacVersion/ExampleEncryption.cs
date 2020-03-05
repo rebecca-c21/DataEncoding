@@ -28,7 +28,7 @@ namespace DataEncoding
         /// Another large prime, though this one is less important that it is prime.  
         /// It must be shared publicly in order to encrypt.
         /// </summary>
-        public static ulong initialState => (ulong)Math.Pow(2, 31) - 1;
+        public static ulong generator => (ulong)Math.Pow(2, 31) - 1;
 
         /// <summary>
         /// seed for this algorithm.  Ideally, this is negotiated between two partners
@@ -64,13 +64,13 @@ namespace DataEncoding
         /// </summary>
         public void Reset()
         {
-            state = initialState;
+            state = generator;
         }
        
         public ExampleEncryption(ulong seed)
         {
             this.seed = seed;
-            this.state = initialState;
+            this.state = generator;
         }
 
 
@@ -84,6 +84,8 @@ namespace DataEncoding
         public byte[] EncryptBlock(byte[] block)
         {
             if (block.Length != 2) throw new ArgumentException("Block Size must be 2 bytes", "block");
+
+            UpdateState();
 
             byte[] keyBytes = { (byte)(key / 256), (byte)(key % 256) };
 
@@ -102,7 +104,6 @@ namespace DataEncoding
             Console.ReadLine();
 #endif
 
-            UpdateState();
 
             return result;
         }
