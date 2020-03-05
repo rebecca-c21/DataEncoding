@@ -3,10 +3,19 @@
 using System;
 namespace DataEncoding
 {
+    /// <summary>
+    /// An example encryption algorithm that uses a simplified version of RSA Encryption.
+    /// A given prime (2^61-1) and starting point (2^31-1) are used to generate a 
+    /// pseudo random list of bits used as the key for encryption.
+    /// 
+    /// The UpdateState() method is a rigorously defined one way function meaning
+    /// that calculating the new state is trivially easy, however going backwards 
+    /// to find what the input to the function was is incredibly difficult.
+    /// </summary>
     public class ExampleEncryption : IEncryptionAlgorithm
     {
         /// <summary>
-        /// This encryption algorithm has a block size of 2
+        /// This encryption algorithm has a block size of 2 bytes (16-bit).
         /// </summary>
         public int BlockSize => 2;
 
