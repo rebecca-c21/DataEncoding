@@ -11,6 +11,14 @@ namespace DataEncoding
     {
         static void Main(string[] args)
         {
+            FileFromBase64();
+
+            Console.WriteLine("Done!");
+            Console.ReadLine();
+        }
+
+        static void FileToBase64()
+        {
             Console.WriteLine("Enter a file name (full path):");
             string filePath = Console.ReadLine();
 
@@ -25,8 +33,35 @@ namespace DataEncoding
                 writer.Write(b64s);
                 writer.Flush();
             }
+        }
 
-            Console.ReadLine();
+        static void FileFromBase64()
+        {
+            Console.WriteLine("Enter a file name containing base64 encoded text:");
+            string filePath = Console.ReadLine();
+            string base64string = "";
+            try
+            {
+                using (StreamReader reader = new StreamReader(new FileStream(filePath, FileMode.Open)))
+                {
+                    base64string = reader.ReadToEnd();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            if(!string.IsNullOrEmpty(base64string))
+            {
+                Console.WriteLine("Enter a file name for the output:");
+                string outfilePath = Console.ReadLine();
+
+                FileDataEncoder encoder = FileDataEncoder.FromBase64String(base64string);
+
+                encoder.Save(outfilePath);
+                Console.WriteLine(encoder.ToHexString());
+            }
         }
     }
 }
