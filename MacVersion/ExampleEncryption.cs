@@ -1,6 +1,10 @@
 ﻿#define SHOW_WORK
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace DataEncoding
 {
     /// <summary>
@@ -20,14 +24,14 @@ namespace DataEncoding
         public int BlockSize => 2;
 
         /// <summary>
-        /// a /really large/ prime number (not the largest 64-bit prime, but close)
+        /// a /really large/ prime number For this case, we are using a 32-bit prime because our multiplication algorithm SUX and is super slow.
         /// </summary>
         public static ulong prime
         {
             get
             {
                 if(_prime == 0) 
-                    _prime = (ulong)Math.Pow(2, 61) - 1;
+                    _prime = (ulong)Math.Pow(2, 31) - 1;
                 return _prime;
             }
         }
@@ -43,7 +47,7 @@ namespace DataEncoding
             get
             {
                 if (_generator == 0) 
-                    _generator = (ulong)Math.Pow(2, 31) - 1;
+                    _generator = (ulong)Math.Pow(2, 17) - 1;
                 return _generator;
             }
         }
@@ -114,6 +118,9 @@ namespace DataEncoding
         public ExampleEncryption(ulong priv, ulong pub)
         {
             this.privateKey = priv;
+#if SHOW_WORK
+            Console.WriteLine("Calculating Combined Key...");
+#endif
             this.combinedKey = BigPow(pub, priv);
             this.state = generator;
         }
@@ -136,6 +143,10 @@ namespace DataEncoding
             return temp;
         }
 
+        private static IEnumerable<ulong> Range(ulong fromInclusive, ulong toExclusive)
+        {
+            for (ulong i = fromInclusive; i < toExclusive; i++) yield return i;
+        }
 
         /// <summary>
         /// Encrypts a 16-bit block (e.g. 2 bytes) using a 64-bit encryption bit generator.
@@ -147,6 +158,10 @@ namespace DataEncoding
         public byte[] EncryptBlock(byte[] block)
         {
             if (block.Length != 2) throw new ArgumentException("Block Size must be 2 bytes", "block");
+
+#if SHOW_WORK
+            Console.WriteLine("** Updating State **");
+#endif
 
             UpdateState();
 
