@@ -34,6 +34,8 @@ namespace DataEncoding
                 writer.Flush();
             }
         }
+        //we use try catches because if you cant open the file you need to tell the user why
+        //you also want to try to see if there's any data at all
 
         static void FileFromBase64()
         {
